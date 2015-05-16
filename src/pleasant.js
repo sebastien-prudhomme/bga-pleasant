@@ -39,6 +39,7 @@ define([
 
         setup: function(gamedatas) {
             this.setupPlayerHand(gamedatas);
+            this.setupPlayerFarms(gamedatas);
 
             this.setupNotifications();
         },
@@ -52,7 +53,21 @@ define([
                 var card_node = this.constructCard(card, player_hand_node);
             }
 
-            this.updatePlayerHand();
+            this.updateCards(player_hand_node);
+        },
+
+        setupPlayerFarms: function(gamedatas) {
+            for (var player_id in gamedatas.players) {
+                var player_farm_node = this.getPlayerFarmCardsNode(player_id);
+
+                for (var card_id in gamedatas.farms[player_id]) {
+                    var card = gamedatas.farms[player_id][card_id];
+
+                    var card_node = this.constructCard(card, player_farm_node);
+                }
+
+                this.updateCards(player_farm_node);
+            }
         },
 
         ///////////////////////////////////////////////////
@@ -115,6 +130,10 @@ define([
             return "pleasant";
         },
 
+        getPlayerFarmCardsNode: function(player_id) {
+            return "pleasant_player_farm_cards_" + player_id;
+        },
+
         getPlayerHandCardsNode: function() {
             return "pleasant_player_hand_cards";
         },
@@ -162,17 +181,16 @@ define([
             }
         },
 
-        updatePlayerHand: function() {
-            var hand_node = this.getPlayerHandCardsNode();
-            var hand_children = query("#" + hand_node + " >");
+        updateCards: function(node) {
+            var children = query("#" + node + " >");
 
             var left_incr = 0;
 
-            if (hand_children.length > 1) {
-                var hand_width = domGeom.getContentBox(hand_node).w;
-                var child_width = domGeom.getContentBox(hand_children[0]).w;
+            if (children.length > 1) {
+                var width = domGeom.getContentBox(node).w;
+                var child_width = domGeom.getContentBox(children[0]).w;
 
-                var left_incr_1 = (hand_width - child_width) / (hand_children.length - 1);
+                var left_incr_1 = (width - child_width) / (children.length - 1);
 
                 var game_node = this.getGameNode();
                 var game_width = domGeom.getContentBox(game_node).w;
@@ -184,9 +202,9 @@ define([
 
             var left = 0;
 
-            for (var i = 0; i < hand_children.length; i++) {
+            for (var i = 0; i < children.length; i++) {
                 var animation = fx.animateProperty({
-                    node: hand_children[i],
+                    node: children[i],
                     duration: this.ANIMATION_DURATION,
                     properties: {
                         top: 0,

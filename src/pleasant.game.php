@@ -87,6 +87,9 @@ class pleasant extends Table {
                 $hand_cards = $this->cards->getCardsInLocation("hand", $player_id);
                 $result["hand"] = $hand_cards;
             }
+
+            $farm_cards = $this->cards->getCardsInLocation("farm_${player_id}" , NULL, "card_location_arg");
+            $result["farms"][$player_id] = $farm_cards;
         }
 
         return $result;
@@ -120,11 +123,15 @@ class pleasant extends Table {
             throw new BgaVisibleSystemException(self::_("You can't play this card"));
         }
 
-        $card = $this->cards->getCard($id);
+        $round = self::getGameStateValue("round");
+        $location_arg = (2 * $round) - 1;
 
+        $this->cards->moveCard($id, "farm_${current_player_id}", $location_arg);
+
+        $card = $this->cards->getCard($id);
         $player_name = self::getCurrentPlayerName();
 
-        self::notifyAllPlayers("cardPlayed", clienttranslate("\${player_name} plays a card"), array(
+        self::notifyAllPlayers("cardPlayedFaceUp", clienttranslate("\${player_name} plays a card"), array(
             "card" => $card,
             "player_name" => $player_name
         ));
@@ -142,11 +149,15 @@ class pleasant extends Table {
             throw new BgaVisibleSystemException(self::_("You can't play this card"));
         }
 
-        $card = $this->cards->getCard($id);
+        $round = self::getGameStateValue("round");
+        $location_arg = 2 * $round;
 
+        $this->cards->moveCard($id, "farm_${current_player_id}", $location_arg);
+
+        $card = $this->cards->getCard($id);
         $player_name = self::getCurrentPlayerName();
 
-        self::notifyAllPlayers("cardPlayed", clienttranslate("\${player_name} plays a card"), array(
+        self::notifyAllPlayers("cardPlayedFaceDown", clienttranslate("\${player_name} plays a card"), array(
             "card" => $card,
             "player_name" => $player_name
         ));
