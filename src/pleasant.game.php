@@ -16,7 +16,9 @@ class pleasant extends Table {
     public function pleasant() {
         parent::__construct();
 
-        self::initGameStateLabels(array());
+        self::initGameStateLabels(array(
+            "round" => 10
+        ));
 
         $this->cards = self::getNew("module.common.deck");
         $this->cards->init("card");
@@ -28,7 +30,9 @@ class pleasant extends Table {
 
     protected function setupNewGame($players, $options = array()) {
         self::setupPlayers($players);
+
         self::setupCards();
+        self::setupRound();
 
         $this->gamestate->setAllPlayersMultiactive();
     }
@@ -68,6 +72,10 @@ class pleasant extends Table {
         foreach (array_keys($players) as $player_id) {
             $this->cards->pickCards($this->HAND_CARD_NUMBER, "deck", $player_id);
         }
+    }
+
+    private function setupRound() {
+        self::setGameStateInitialValue("round", 1);
     }
 
     protected function getAllDatas() {
@@ -183,15 +191,23 @@ class pleasant extends Table {
     }
 
     public function stCardFaceDownPlayed() {
-        $this->gamestate->setAllPlayersMultiactive();
+        $round = self::getGameStateValue("round");
 
-        $players = self::loadPlayersBasicInfos();
+        if ($round == $this->ROUND_NUMBER) {
+            $this->gamestate->nextState("gameEnd");
+        } else {
+            self::setGameStateValue("round", $round + 1);
 
-        foreach (array_keys($players) as $player_id) {
-            self::giveExtraTime($player_id);
+            $this->gamestate->setAllPlayersMultiactive();
+
+            $players = self::loadPlayersBasicInfos();
+
+            foreach (array_keys($players) as $player_id) {
+                self::giveExtraTime($player_id);
+            }
+
+            $this->gamestate->nextState("playCardFaceUp");
         }
-
-        $this->gamestate->nextState("playCardFaceUp");
     }
 
 //////////////////////////////////////////////////////////////////////////////

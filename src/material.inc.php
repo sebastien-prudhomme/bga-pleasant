@@ -46,3 +46,5 @@ $this->PLAYER_COLORS = array(
     "0000ff",
     "ffff00"
 );
+
+$this->ROUND_NUMBER = 3;
