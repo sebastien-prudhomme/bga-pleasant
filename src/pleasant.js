@@ -31,7 +31,10 @@ define([
             this.ANIMATION_DURATION = 1000;
             this.ANIMATION_WAIT = 100;
 
-            this.NOTIFICATIONS = [];
+            this.NOTIFICATIONS = [
+                ["cardPlayedFaceUp", this.ANIMATION_DURATION + this.ANIMATION_WAIT],
+                ["cardPlayedFaceDown", this.ANIMATION_DURATION + this.ANIMATION_WAIT]
+            ];
 
             this.temporary_connections = [];
             this.temporary_tooltips = [];
@@ -264,6 +267,44 @@ define([
                 connect.subscribe(notif_name, this, method_name);
                 this.notifqueue.setSynchronous(notif_name, notif_duration);
             }
+        },
+
+        notifCardPlayedFaceUp: function(notif) {
+            var card = notif.args.card;
+            var player_id = notif.args.player_id;
+
+            var player_farm_node = this.getPlayerFarmCardsNode(player_id);
+
+            if  (player_id != this.player_id) {
+                this.constructCard(card, player_farm_node);
+            } else {
+                var card_node = this.getCardNode(card.id);
+                var player_hand_node = this.getPlayerHandCardsNode();
+
+                this.attachToNewParent(card_node, player_farm_node);
+                this.updateCards(player_hand_node);
+            }
+
+            this.updateCards(player_farm_node);
+        },
+
+        notifCardPlayedFaceDown: function(notif) {
+            var card = notif.args.card;
+            var player_id = notif.args.player_id;
+
+            var player_farm_node = this.getPlayerFarmCardsNode(player_id);
+
+            if  (player_id != this.player_id) {
+                this.constructCard(card, player_farm_node);
+            } else {
+                var card_node = this.getCardNode(card.id);
+                var player_hand_node = this.getPlayerHandCardsNode();
+
+                this.attachToNewParent(card_node, player_farm_node);
+                this.updateCards(player_hand_node);
+            }
+
+            this.updateCards(player_farm_node);
         }
     });
 });

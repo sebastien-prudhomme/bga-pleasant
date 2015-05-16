@@ -133,6 +133,7 @@ class pleasant extends Table {
 
         self::notifyAllPlayers("cardPlayedFaceUp", clienttranslate("\${player_name} plays a card"), array(
             "card" => $card,
+            "player_id" => $current_player_id,
             "player_name" => $player_name
         ));
 
@@ -159,6 +160,7 @@ class pleasant extends Table {
 
         self::notifyAllPlayers("cardPlayedFaceDown", clienttranslate("\${player_name} plays a card"), array(
             "card" => $card,
+            "player_id" => $current_player_id,
             "player_name" => $player_name
         ));
 
