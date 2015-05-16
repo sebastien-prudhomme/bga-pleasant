@@ -109,6 +109,14 @@ class pleasant extends Table {
         return $result;
     }
 
+    private function hideCard($card) {
+        $result = $card;
+
+        $result["type"] = "hidden";
+
+        return $result;
+    }
+
 //////////////////////////////////////////////////////////////////////////////
 //////////// Player actions
 ////////////
@@ -131,11 +139,27 @@ class pleasant extends Table {
         $card = $this->cards->getCard($id);
         $player_name = self::getCurrentPlayerName();
 
-        self::notifyAllPlayers("cardPlayedFaceUp", clienttranslate("\${player_name} plays a card"), array(
-            "card" => $card,
-            "player_id" => $current_player_id,
-            "player_name" => $player_name
-        ));
+        $players = self::loadPlayersBasicInfos();
+
+        foreach (array_keys($players) as $player_id) {
+            $private_card = $card;
+
+            if ($player_id != $current_player_id) {
+                $private_card = self::hideCard($card);
+            }
+
+            self::notifyPlayer($player_id, "cardPlayedFaceUp", clienttranslate("\${player_name} plays a card"), array(
+                "card" => $private_card,
+                "player_id" => $current_player_id,
+                "player_name" => $player_name
+            ));
+
+            if ($player_id == $current_player_id) {
+                self::notifyPlayer($player_id, "cardHidden", "", array(
+                    "card" => $private_card
+                ));
+            }
+        }
 
         $this->gamestate->setPlayerNonMultiactive($current_player_id, "cardFaceUpPlayed");
     }
@@ -158,11 +182,27 @@ class pleasant extends Table {
         $card = $this->cards->getCard($id);
         $player_name = self::getCurrentPlayerName();
 
-        self::notifyAllPlayers("cardPlayedFaceDown", clienttranslate("\${player_name} plays a card"), array(
-            "card" => $card,
-            "player_id" => $current_player_id,
-            "player_name" => $player_name
-        ));
+        $players = self::loadPlayersBasicInfos();
+
+        foreach (array_keys($players) as $player_id) {
+            $private_card = $card;
+
+            if ($player_id != $current_player_id) {
+                $private_card = self::hideCard($card);
+            }
+
+            self::notifyPlayer($player_id, "cardPlayedFaceDown", clienttranslate("\${player_name} plays a card"), array(
+                "card" => $private_card,
+                "player_id" => $current_player_id,
+                "player_name" => $player_name
+            ));
+
+            if ($player_id == $current_player_id) {
+                self::notifyPlayer($player_id, "cardHidden", "", array(
+                    "card" => $private_card
+                ));
+            }
+        }
 
         $this->gamestate->setPlayerNonMultiactive($current_player_id, "cardFaceDownPlayed");
     }
