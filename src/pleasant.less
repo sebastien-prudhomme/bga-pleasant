@@ -1,0 +1,111 @@
+@width: 753px;
+@width_gutter: @width * 0.01;
+
+@cards_per_farm: 7;
+
+@card_ratio: 2073 / 1483;
+@card_width: (@width - (@cards_per_farm  + 1) * @width_gutter) / @cards_per_farm;
+@card_height: @card_width * @card_ratio;
+
+@card_types: back background cereal chicken cow donkey fruit paddock pig sheep tent tractor vegetable;
+
+@import url(../../../css/csslayer.css);
+
+.pleasant_h3 {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+#pleasant_player_hand {
+    padding: ceil(@width_gutter);
+
+    background-image: url("img/rounded_b.png");
+}
+
+.pleasant_player_farm {
+    margin-top: ceil(@width_gutter);
+    padding: ceil(@width_gutter);
+
+    background-image: url("img/rounded_b.png");
+}
+
+.pleasant_player_cards {
+    position: relative;
+
+    width: @width;
+    height: ceil(@card_height);
+    margin-top: ceil(@width_gutter);
+}
+
+#pleasant_player_hand_cards {
+    .pleasant_player_cards;
+}
+
+.pleasant_player_farm_cards {
+    .pleasant_player_cards;
+}
+
+.pleasant_card_size {
+    width: ceil(@card_width);
+    height: ceil(@card_height);
+}
+
+.pleasant_card {
+    position: absolute;
+
+    perspective: 500px;
+
+    .pleasant_card_size;
+}
+
+.pleasant_card_flipper {
+    position: relative;
+
+    transform-style: preserve-3d;
+}
+
+.pleasant_card_face {
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    background-image: url("img/cards.png");
+    background-size: (length(@card_types) * 100%) 100%;
+
+    backface-visibility: hidden;
+
+    .pleasant_card_size;
+}
+
+.pleasant_card_front {
+    z-index: 2;
+
+    .pleasant_card_face;
+}
+
+.pleasant_card_back {
+    transform: rotateY(180deg);
+
+    .pleasant_card_face;
+    .pleasant_card_type_back;
+}
+
+.pleasant_card_type(@position) {
+    background-position: -(@position * 100%) 0%;
+}
+
+@import "../build/cards.less";
+
+.sprites(@spritesheet-sprites);
+
+.cards(@card_types, @i: 1) when (@i <= length(@card_types)) {
+    @card_type: extract(@card_types, @i);
+
+    .pleasant_card_type_@{card_type} {
+        .pleasant_card_type(@position: @i - 1);
+    }
+
+    .cards(@card_types, @i + 1);
+}
+
+.cards(@card_types);
