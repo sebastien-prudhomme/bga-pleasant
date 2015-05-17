@@ -21,21 +21,28 @@ define([
     "dojo/dom-construct",
     "dojo/dom-geometry",
     "dojo/dom-style",
+    "dojo/fx",
     "dojo/query",
     "dojox/fx/ext-dojo/complex",
     "ebg/core/gamegui",
     "ebg/counter"
-], function(connect, declare, fx, lang, dom, domClass, domConstruct, domGeom, domStyle, query) {
+], function(connect, declare, fx, lang, dom, domClass, domConstruct, domGeom, domStyle, coreFx, query) {
     return declare("bgagame.pleasant", ebg.core.gamegui, {
         constructor: function() {
             this.ANIMATION_DURATION = 1000;
             this.ANIMATION_WAIT = 100;
 
+            this.CARD_HEIGHT = 139;
+            this.CARD_WIDTH = 99;
+
+            this.GUTTER = 8;
+
             this.NOTIFICATIONS = [
                 ["cardPlayedFaceUp", this.ANIMATION_DURATION + this.ANIMATION_WAIT],
                 ["cardPlayedFaceDown", this.ANIMATION_DURATION + this.ANIMATION_WAIT],
                 ["cardHidden", this.ANIMATION_DURATION + this.ANIMATION_WAIT],
-                ["cardRevealed", this.ANIMATION_DURATION + this.ANIMATION_WAIT]
+                ["cardRevealed", this.ANIMATION_DURATION + this.ANIMATION_WAIT],
+                ["roundEnded", this.ANIMATION_DURATION + this.ANIMATION_WAIT]
             ];
 
             this.temporary_connections = [];
@@ -68,7 +75,7 @@ define([
                 for (var card_id in gamedatas.farms[player_id]) {
                     var card = gamedatas.farms[player_id][card_id];
 
-                    var card_node = this.constructCard(card, player_farm_node);
+                    this.constructCard(card, player_farm_node);
                 }
 
                 this.updateCards(player_farm_node);
@@ -106,7 +113,10 @@ define([
             this.temporary_tooltips.push(node);
         },
 
-        constructCard: function(card, parent) {
+        constructCard: function(card, parent, top, left) {
+            top = typeof top !== 'undefined' ? top : 0;
+            left = typeof left !== 'undefined' ? left : 0;
+
             var card_rotation;
             var card_type;
 
@@ -120,8 +130,10 @@ define([
 
             var card_node = domConstruct.place(this.format_block("jstpl_card", {
                 CARD_ID: card.id,
-                CARD_ROTATION: card_rotation,
-                CARD_TYPE: card_type
+                CARD_TYPE: card_type,
+                CARD_TOP: top,
+                CARD_LEFT: left,
+                CARD_ROTATION: card_rotation
             }), parent);
 
             return card_node;
@@ -364,5 +376,58 @@ define([
 
             animation.play();
         },
+
+        notifRoundEnded: function(notif) {
+            var new_hand = notif.args.new_hand;
+            var old_hand = notif.args.old_hand;
+
+            var animations = [];
+
+            var player_hand_node = this.getPlayerHandCardsNode();
+
+            var top = -this.CARD_HEIGHT - this.GUTTER;
+            var left = 0;
+
+            for (var card_id in new_hand) {
+                var card = new_hand[card_id];
+
+                var card_node = this.constructCard(card, player_hand_node, top, left);
+
+                var animation = fx.animateProperty({
+                    node: card_node,
+                    duration: this.ANIMATION_DURATION,
+                    properties: {
+                        top: 0
+                    }
+                });
+
+                animations.push(animation);
+
+                left += this.CARD_WIDTH + this.GUTTER;
+            }
+
+            top = this.CARD_HEIGHT + this.GUTTER;
+
+            for (var card_id in old_hand) {
+                var card = old_hand[card_id];
+                var card_node = this.getCardNode(card.id);
+
+                var animation = fx.animateProperty({
+                    node: card_node,
+                    duration: this.ANIMATION_DURATION,
+                    properties: {
+                        top: top
+                    }
+                });
+
+                connect.connect(animation, "onEnd", function(card_node) {
+                    domConstruct.destroy(card_node);
+                });
+
+                animations.push(animation);
+            }
+
+            coreFx.combine(animations).play();
+        }
     });
 });

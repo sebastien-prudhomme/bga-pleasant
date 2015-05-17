@@ -15,7 +15,7 @@
 
 <script type="text/javascript">
     var jstpl_card = " \
-        <div id=\"pleasant_card_${CARD_ID}\" class=\"pleasant_card\"> \
+        <div id=\"pleasant_card_${CARD_ID}\" class=\"pleasant_card\" style=\"top: ${CARD_TOP}px; left: ${CARD_LEFT}px;\"> \
             <div id=\"pleasant_card_flipper_${CARD_ID}\" class=\"pleasant_card_flipper\" style=\"transform: rotateY(${CARD_ROTATION}deg);\"> \
                 <div id=\"pleasant_card_front_${CARD_ID}\" class=\"pleasant_card_front pleasant_card_type_${CARD_TYPE}\"></div> \
                 <div class=\"pleasant_card_back\"></div> \
