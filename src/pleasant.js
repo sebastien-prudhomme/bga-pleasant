@@ -41,7 +41,8 @@ define([
                 ["cardPlayedFaceDown", this.ANIMATION_DURATION + this.ANIMATION_WAIT],
                 ["cardHidden", this.ANIMATION_DURATION + this.ANIMATION_WAIT],
                 ["cardRevealed", this.ANIMATION_DURATION + this.ANIMATION_WAIT],
-                ["roundEnded", this.ANIMATION_DURATION + this.ANIMATION_WAIT]
+                ["roundEnded", this.ANIMATION_DURATION + this.ANIMATION_WAIT],
+                ["cardDrawn", this.ANIMATION_DURATION + this.ANIMATION_WAIT],
             ];
 
             this.temporary_connections = [];
@@ -422,6 +423,28 @@ define([
             }
 
             coreFx.combine(animations).play();
+        },
+
+        notifCardDrawn: function(notif) {
+            var card = notif.args.card;
+
+            var player_hand_node = this.getPlayerHandCardsNode();
+            var card_nodes = query("#" + player_hand_node + " >");
+
+            var top = -this.CARD_HEIGHT - this.GUTTER;
+            var left = (this.CARD_WIDTH + this.GUTTER) * card_nodes.length;
+
+            var card_node = this.constructCard(card, player_hand_node, top, left);
+
+            var animation = fx.animateProperty({
+                node: card_node,
+                duration: this.ANIMATION_DURATION,
+                properties: {
+                    top: 0
+                }
+            });
+
+            animation.play();
         }
     });
 });

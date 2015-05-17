@@ -294,6 +294,14 @@ class pleasant extends Table {
                 ));
             }
 
+            foreach (array_keys($players) as $player_id) {
+                $card = $this->cards->pickCard("deck", $player_id);
+
+                self::notifyPlayer($player_id, "cardDrawn", "", array(
+                    "card" => $card
+                ));
+            }
+
             $this->gamestate->setAllPlayersMultiactive();
 
             foreach (array_keys($players) as $player_id) {
