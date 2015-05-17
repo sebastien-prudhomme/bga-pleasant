@@ -232,9 +232,25 @@ class pleasant extends Table {
 ////////////
 
     public function stCardFaceUpPlayed() {
-        $this->gamestate->setAllPlayersMultiactive();
-
         $players = self::loadPlayersBasicInfos();
+
+        foreach (array_keys($players) as $player_id) {
+            $cards = $this->cards->getCardsInLocation("farm_${player_id}" , NULL, "card_location_arg");
+            $card = end($cards);
+
+            $card_type = $this->CARD_TYPE_TRANSLATIONS[$card["type"]];
+            $player_name = $players[$player_id]["player_name"];
+
+            self::notifyAllPlayers("cardRevealed", clienttranslate("\${player_name} reveals a \${card_type} card"), array(
+                "i18n" => array("card_type"),
+                "card" => $card,
+                "card_type" => $card_type,
+                "player_id" => $player_id,
+                "player_name" => $player_name
+            ));
+        }
+
+        $this->gamestate->setAllPlayersMultiactive();
 
         foreach (array_keys($players) as $player_id) {
             self::giveExtraTime($player_id);

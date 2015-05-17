@@ -34,7 +34,8 @@ define([
             this.NOTIFICATIONS = [
                 ["cardPlayedFaceUp", this.ANIMATION_DURATION + this.ANIMATION_WAIT],
                 ["cardPlayedFaceDown", this.ANIMATION_DURATION + this.ANIMATION_WAIT],
-                ["cardHidden", this.ANIMATION_DURATION + this.ANIMATION_WAIT]
+                ["cardHidden", this.ANIMATION_DURATION + this.ANIMATION_WAIT],
+                ["cardRevealed", this.ANIMATION_DURATION + this.ANIMATION_WAIT]
             ];
 
             this.temporary_connections = [];
@@ -131,7 +132,7 @@ define([
         },
 
         getCardFrontNode: function(card_id) {
-            return "plesant_card_front_" + card_id;
+            return "pleasant_card_front_" + card_id;
         },
 
         getCardNode: function(card_id) {
@@ -333,6 +334,35 @@ define([
             });
 
             animation.play();
-        }
+        },
+
+        notifCardRevealed: function(notif) {
+            var card = notif.args.card;
+            var player_id = notif.args.player_id;
+
+            if  (player_id != this.player_id) {
+                var card_front_node = this.getCardFrontNode(card.id);
+
+                var remove_class = "pleasant_card_type_back";
+                var add_class = "pleasant_card_type_" + card.type;
+
+                domClass.replace(card_front_node, add_class, remove_class);
+            }
+
+            var card_flipper_node = this.getCardFlipperNode(card.id);
+
+            var animation = fx.animateProperty({
+                node: card_flipper_node,
+                duration: this.ANIMATION_DURATION,
+                properties: {
+                    transform: {
+                        start: "rotateY(-180deg)",
+                        end: "rotateY(0deg)"
+                    }
+                }
+            });
+
+            animation.play();
+        },
     });
 });
