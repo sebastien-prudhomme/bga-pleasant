@@ -19,14 +19,13 @@ define([
     "dojo/dom",
     "dojo/dom-class",
     "dojo/dom-construct",
-    "dojo/dom-geometry",
     "dojo/dom-style",
     "dojo/fx",
     "dojo/query",
     "dojox/fx/ext-dojo/complex",
     "ebg/core/gamegui",
     "ebg/counter"
-], function(connect, declare, fx, lang, dom, domClass, domConstruct, domGeom, domStyle, coreFx, query) {
+], function(connect, declare, fx, lang, dom, domClass, domConstruct, domStyle, coreFx, query) {
     return declare("bgagame.pleasant", ebg.core.gamegui, {
         constructor: function() {
             this.ANIMATION_DURATION = 1000;
@@ -59,26 +58,32 @@ define([
         setupPlayerHand: function(gamedatas) {
             var player_hand_node = this.getPlayerHandCardsNode();
 
+            var top = 0;
+            var left = 0;
+
             for (var card_id in gamedatas.hand) {
                 var card = gamedatas.hand[card_id];
 
-                var card_node = this.constructCard(card, player_hand_node);
-            }
+                this.constructCard(card, player_hand_node, top, left);
 
-            this.updateCards(player_hand_node);
+                left += this.CARD_WIDTH + this.GUTTER;
+            }
         },
 
         setupPlayerFarms: function(gamedatas) {
             for (var player_id in gamedatas.players) {
                 var player_farm_node = this.getPlayerFarmCardsNode(player_id);
 
+                var top = 0;
+                var left = 0;
+
                 for (var card_id in gamedatas.farms[player_id]) {
                     var card = gamedatas.farms[player_id][card_id];
 
-                    this.constructCard(card, player_farm_node);
-                }
+                    this.constructCard(card, player_farm_node, top, left);
 
-                this.updateCards(player_farm_node);
+                    left += this.CARD_WIDTH + this.GUTTER;
+                }
             }
         },
 
@@ -207,40 +212,29 @@ define([
         },
 
         updateCards: function(node) {
-            var children = query("#" + node + " >");
+            var card_nodes = query("#" + node + " >");
 
-            var left_incr = 0;
-
-            if (children.length > 1) {
-                var width = domGeom.getContentBox(node).w;
-                var child_width = domGeom.getContentBox(children[0]).w;
-
-                var left_incr_1 = (width - child_width) / (children.length - 1);
-
-                var game_node = this.getGameNode();
-                var game_width = domGeom.getContentBox(game_node).w;
-
-                var left_incr_2 = child_width + (game_width * 0.01) ;
-
-                left_incr = Math.min(left_incr_1, left_incr_2);
-            }
-
+            var animations = [];
             var left = 0;
 
-            for (var i = 0; i < children.length; i++) {
+            for (var i = 0; i < card_nodes.length; i++) {
+                var card_node = card_nodes[i];
+
                 var animation = fx.animateProperty({
-                    node: children[i],
+                    node: card_node,
                     duration: this.ANIMATION_DURATION,
                     properties: {
                         top: 0,
-                        left: Math.ceil(left)
+                        left: left
                     }
                 });
 
-                animation.play();
+                animations.push(animation);
 
-                left += left_incr;
+                left += this.CARD_WIDTH + this.GUTTER;
             }
+
+            coreFx.combine(animations).play();
         },
 
         ///////////////////////////////////////////////////
