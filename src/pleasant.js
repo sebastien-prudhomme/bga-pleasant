@@ -145,6 +145,32 @@ define([
             return card_node;
         },
 
+        constructCardsAnimation: function(node) {
+            var card_nodes = query("#" + node + " >");
+
+            var animations = [];
+            var left = 0;
+
+            for (var i = 0; i < card_nodes.length; i++) {
+                var card_node = card_nodes[i];
+
+                var animation = fx.animateProperty({
+                    node: card_node,
+                    duration: this.ANIMATION_DURATION,
+                    properties: {
+                        top: 0,
+                        left: left
+                    }
+                });
+
+                animations.push(animation);
+
+                left += this.CARD_WIDTH + this.GUTTER;
+            }
+
+            return coreFx.combine(animations);
+        },
+
         getCardFlipperNode: function(card_id) {
             return "pleasant_card_flipper_" + card_id;
         },
@@ -212,32 +238,6 @@ define([
             }
         },
 
-        updateCards: function(node) {
-            var card_nodes = query("#" + node + " >");
-
-            var animations = [];
-            var left = 0;
-
-            for (var i = 0; i < card_nodes.length; i++) {
-                var card_node = card_nodes[i];
-
-                var animation = fx.animateProperty({
-                    node: card_node,
-                    duration: this.ANIMATION_DURATION,
-                    properties: {
-                        top: 0,
-                        left: left
-                    }
-                });
-
-                animations.push(animation);
-
-                left += this.CARD_WIDTH + this.GUTTER;
-            }
-
-            coreFx.combine(animations).play();
-        },
-
         ///////////////////////////////////////////////////
         //// Actions
 
@@ -293,16 +293,34 @@ define([
             var player_farm_node = this.getPlayerFarmCardsNode(player_id);
 
             if  (player_id != this.player_id) {
-                this.constructCard(card, player_farm_node);
+                domStyle.set(player_farm_node, "overflow", "hidden");
+
+                var card_nodes = query("#" + player_farm_node + " >");
+
+                var top = -this.CARD_HEIGHT - this.GUTTER;
+                var left = (this.CARD_WIDTH + this.GUTTER) * card_nodes.length;
+
+                this.constructCard(card, player_farm_node, top, left);
+
+                var animation = this.constructCardsAnimation(player_farm_node);
+
+                connect.connect(animation, "onEnd", function(player_farm_node) {
+                    domStyle.set(player_farm_node, "overflow", "");
+                });
+
+                animation.play();
             } else {
                 var card_node = this.getCardNode(card.id);
                 var player_hand_node = this.getPlayerHandCardsNode();
 
                 this.attachToNewParent(card_node, player_farm_node);
-                this.updateCards(player_hand_node);
-            }
 
-            this.updateCards(player_farm_node);
+                var farm_animation = this.constructCardsAnimation(player_farm_node);
+                farm_animation.play();
+
+                var hand_animation = this.constructCardsAnimation(player_hand_node);
+                hand_animation.play();
+            }
         },
 
         notifCardPlayedFaceDown: function(notif) {
@@ -312,16 +330,34 @@ define([
             var player_farm_node = this.getPlayerFarmCardsNode(player_id);
 
             if  (player_id != this.player_id) {
-                this.constructCard(card, player_farm_node);
+                domStyle.set(player_farm_node, "overflow", "hidden");
+
+                var card_nodes = query("#" + player_farm_node + " >");
+
+                var top = -this.CARD_HEIGHT - this.GUTTER;
+                var left = (this.CARD_WIDTH + this.GUTTER) * card_nodes.length;
+
+                this.constructCard(card, player_farm_node, top, left);
+
+                var animation = this.constructCardsAnimation(player_farm_node);
+
+                connect.connect(animation, "onEnd", function(player_farm_node) {
+                    domStyle.set(player_farm_node, "overflow", "");
+                });
+
+                animation.play();
             } else {
                 var card_node = this.getCardNode(card.id);
                 var player_hand_node = this.getPlayerHandCardsNode();
 
                 this.attachToNewParent(card_node, player_farm_node);
-                this.updateCards(player_hand_node);
-            }
 
-            this.updateCards(player_farm_node);
+                var farm_animation = this.constructCardsAnimation(player_farm_node);
+                farm_animation.play();
+
+                var hand_animation = this.constructCardsAnimation(player_hand_node);
+                hand_animation.play();
+            }
         },
 
         notifCardHidden: function(notif) {
