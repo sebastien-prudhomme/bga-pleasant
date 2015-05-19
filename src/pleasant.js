@@ -37,8 +37,7 @@ define([
             this.GUTTER = 8;
 
             this.NOTIFICATIONS = [
-                ["cardPlayedFaceUp", this.ANIMATION_DURATION + this.ANIMATION_WAIT],
-                ["cardPlayedFaceDown", this.ANIMATION_DURATION + this.ANIMATION_WAIT],
+                ["cardPlayed", this.ANIMATION_DURATION + this.ANIMATION_WAIT],
                 ["cardHidden", this.ANIMATION_DURATION + this.ANIMATION_WAIT],
                 ["cardRevealed", this.ANIMATION_DURATION + this.ANIMATION_WAIT],
                 ["roundEnded", this.ANIMATION_DURATION + this.ANIMATION_WAIT],
@@ -286,44 +285,7 @@ define([
             }
         },
 
-        notifCardPlayedFaceUp: function(notif) {
-            var card = notif.args.card;
-            var player_id = notif.args.player_id;
-
-            var player_farm_node = this.getPlayerFarmCardsNode(player_id);
-
-            if  (player_id != this.player_id) {
-                domStyle.set(player_farm_node, "overflow", "hidden");
-
-                var card_nodes = query("#" + player_farm_node + " >");
-
-                var top = -this.CARD_HEIGHT - this.GUTTER;
-                var left = (this.CARD_WIDTH + this.GUTTER) * card_nodes.length;
-
-                this.constructCard(card, player_farm_node, top, left);
-
-                var animation = this.constructCardsAnimation(player_farm_node);
-
-                connect.connect(animation, "onEnd", function(player_farm_node) {
-                    domStyle.set(player_farm_node, "overflow", "");
-                });
-
-                animation.play();
-            } else {
-                var card_node = this.getCardNode(card.id);
-                var player_hand_node = this.getPlayerHandCardsNode();
-
-                this.attachToNewParent(card_node, player_farm_node);
-
-                var farm_animation = this.constructCardsAnimation(player_farm_node);
-                farm_animation.play();
-
-                var hand_animation = this.constructCardsAnimation(player_hand_node);
-                hand_animation.play();
-            }
-        },
-
-        notifCardPlayedFaceDown: function(notif) {
+        notifCardPlayed: function(notif) {
             var card = notif.args.card;
             var player_id = notif.args.player_id;
 

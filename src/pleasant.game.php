@@ -148,7 +148,7 @@ class pleasant extends Table {
                 $private_card = self::hideCard($card);
             }
 
-            self::notifyPlayer($player_id, "cardPlayedFaceUp", clienttranslate("\${player_name} plays a card"), array(
+            self::notifyPlayer($player_id, "cardPlayed", clienttranslate("\${player_name} plays a card"), array(
                 "card" => $private_card,
                 "player_id" => $current_player_id,
                 "player_name" => $player_name
@@ -191,7 +191,7 @@ class pleasant extends Table {
                 $private_card = self::hideCard($card);
             }
 
-            self::notifyPlayer($player_id, "cardPlayedFaceDown", clienttranslate("\${player_name} plays a card"), array(
+            self::notifyPlayer($player_id, "cardPlayed", clienttranslate("\${player_name} plays a card"), array(
                 "card" => $private_card,
                 "player_id" => $current_player_id,
                 "player_name" => $player_name
@@ -260,40 +260,59 @@ class pleasant extends Table {
     }
 
     public function stCardFaceDownPlayed() {
+        $players = self::loadPlayersBasicInfos();
+
+        foreach (array_keys($players) as $player_id) {
+            $this->cards->moveAllCardsInLocation("hand", "old_hand", $player_id, $player_id);
+        }
+
+        $next_player_table = self::getNextPlayerTable();
+
+        foreach (array_keys($players) as $player_id) {
+            $next_player_id = $next_player_table[$player_id];
+
+            $this->cards->moveAllCardsInLocation("old_hand", "hand", $player_id, $next_player_id);
+        }
+
         $round = self::getGameStateValue("round");
+        self::setGameStateValue("round", $round + 1);
+
+        foreach (array_keys($players) as $player_id) {
+            $new_hand_cards = $this->cards->getCardsInLocation("hand", $player_id);
+
+            $next_player_id = $next_player_table[$player_id];
+            $old_hand_cards = $this->cards->getCardsInLocation("hand", $next_player_id);
+
+            self::notifyPlayer($player_id, "roundEnded", clienttranslate("End of round n°${round}"), array(
+                "new_hand" => $new_hand_cards,
+                "old_hand" => $old_hand_cards,
+                "round" => $round
+            ));
+        }
 
         if ($round == $this->ROUND_NUMBER) {
-            $this->gamestate->nextState("gameEnd");
-        } else {
-            $players = self::loadPlayersBasicInfos();
+            $location_arg = 2 * $this->ROUND_NUMBER + 1;
 
             foreach (array_keys($players) as $player_id) {
-                $this->cards->moveAllCardsInLocation("hand", "old_hand", $player_id, $player_id);
-            }
+                $cards = $this->cards->getCardsInLocation("hand", $player_id);
+                $card = reset($cards);
 
-            $next_player_table = self::getNextPlayerTable();
+                $this->cards->moveCard($card["id"], "farm_${player_id}", $location_arg);
 
-            foreach (array_keys($players) as $player_id) {
-                $next_player_id = $next_player_table[$player_id];
+                $card_type = $this->CARD_TYPE_TRANSLATIONS[$card["type"]];
+                $player_name = $players[$player_id]["player_name"];
 
-                $this->cards->moveAllCardsInLocation("old_hand", "hand", $player_id, $next_player_id);
-            }
-
-            self::setGameStateValue("round", $round + 1);
-
-            foreach (array_keys($players) as $player_id) {
-                $new_hand_cards = $this->cards->getCardsInLocation("hand", $player_id);
-
-                $next_player_id = $next_player_table[$player_id];
-                $old_hand_cards = $this->cards->getCardsInLocation("hand", $next_player_id);
-
-                self::notifyPlayer($player_id, "roundEnded", clienttranslate("End of round n°${round}"), array(
-                    "new_hand" => $new_hand_cards,
-                    "old_hand" => $old_hand_cards,
-                    "round" => $round
+                self::notifyAllPlayers("cardPlayed", clienttranslate("\${player_name} plays a \${card_type} card"), array(
+                    "i18n" => array("card_type"),
+                    "card" => $card,
+                    "card_type" => $card_type,
+                    "player_id" => $player_id,
+                    "player_name" => $player_name
                 ));
             }
 
+            $this->gamestate->nextState("gameEnd");
+        } else {
             foreach (array_keys($players) as $player_id) {
                 $card = $this->cards->pickCard("deck", $player_id);
 
