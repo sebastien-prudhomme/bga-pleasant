@@ -167,7 +167,9 @@ define([
                 left += this.CARD_WIDTH + this.GUTTER;
             }
 
-            return coreFx.combine(animations);
+            var full_animation = coreFx.combine(animations);
+
+            return full_animation;
         },
 
         getCardFlipperNode: function(card_id) {
@@ -314,11 +316,17 @@ define([
 
                 this.attachToNewParent(card_node, player_farm_node);
 
+                var animations = [];
+
                 var farm_animation = this.constructCardsAnimation(player_farm_node);
-                farm_animation.play();
+                animations.push(farm_animation);
 
                 var hand_animation = this.constructCardsAnimation(player_hand_node);
-                hand_animation.play();
+                animations.push(hand_animation);
+
+                var full_animation = coreFx.combine(animations);
+
+                full_animation.play();
             }
         },
 
@@ -377,6 +385,7 @@ define([
             var animations = [];
 
             var player_hand_node = this.getPlayerHandCardsNode();
+            domStyle.set(player_hand_node, "overflow", "hidden");
 
             var top = -this.CARD_HEIGHT - this.GUTTER;
             var left = 0;
@@ -420,26 +429,32 @@ define([
                 animations.push(animation);
             }
 
-            coreFx.combine(animations).play();
+            var full_animation = coreFx.combine(animations);
+
+            connect.connect(full_animation, "onEnd", function(player_hand_node) {
+                domStyle.set(player_hand_node, "overflow", "");
+            });
+
+            full_animation.play();
         },
 
         notifCardDrawn: function(notif) {
             var card = notif.args.card;
 
             var player_hand_node = this.getPlayerHandCardsNode();
+            domStyle.set(player_hand_node, "overflow", "hidden");
+
             var card_nodes = query("#" + player_hand_node + " >");
 
             var top = -this.CARD_HEIGHT - this.GUTTER;
             var left = (this.CARD_WIDTH + this.GUTTER) * card_nodes.length;
 
-            var card_node = this.constructCard(card, player_hand_node, top, left);
+            this.constructCard(card, player_hand_node, top, left);
 
-            var animation = fx.animateProperty({
-                node: card_node,
-                duration: this.ANIMATION_DURATION,
-                properties: {
-                    top: 0
-                }
+            var animation = this.constructCardsAnimation(player_hand_node);
+
+            connect.connect(animation, "onEnd", function(player_hand_node) {
+                domStyle.set(player_hand_node, "overflow", "");
             });
 
             animation.play();
