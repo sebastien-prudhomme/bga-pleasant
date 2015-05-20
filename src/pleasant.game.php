@@ -153,12 +153,6 @@ class pleasant extends Table {
                 "player_id" => $current_player_id,
                 "player_name" => $player_name
             ));
-
-            if ($player_id == $current_player_id) {
-                self::notifyPlayer($player_id, "cardHidden", "", array(
-                    "card" => $private_card
-                ));
-            }
         }
 
         $this->gamestate->setPlayerNonMultiactive($current_player_id, "cardFaceUpPlayed");
@@ -241,13 +235,17 @@ class pleasant extends Table {
             $card_type = $this->CARD_TYPE_TRANSLATIONS[$card["type"]];
             $player_name = $players[$player_id]["player_name"];
 
-            self::notifyAllPlayers("cardRevealed", clienttranslate("\${player_name} reveals a \${card_type} card"), array(
-                "i18n" => array("card_type"),
-                "card" => $card,
-                "card_type" => $card_type,
-                "player_id" => $player_id,
-                "player_name" => $player_name
-            ));
+            foreach (array_keys($players) as $other_player_id) {
+                if ($other_player_id != $player_id) {
+                    self::notifyPlayer($other_player_id, "cardRevealed", clienttranslate("\${player_name} reveals a \${card_type} card"), array(
+                        "i18n" => array("card_type"),
+                        "card" => $card,
+                        "card_type" => $card_type,
+                        "player_id" => $player_id,
+                        "player_name" => $player_name
+                    ));
+                }
+            }
         }
 
         $this->gamestate->setAllPlayersMultiactive();
