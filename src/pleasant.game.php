@@ -309,6 +309,27 @@ class pleasant extends Table {
                 ));
             }
 
+            foreach (array_keys($players) as $player_id) {
+                $player_name = $players[$player_id]["player_name"];
+
+                for ($round = 1; $round <= $this->ROUND_NUMBER; $round++) {
+                    $location_arg = 2 * $round;
+
+                    $cards = $this->cards->getCardsInLocation("farm_${player_id}", $location_arg);
+                    $card = reset($cards);
+
+                    $card_type = $this->CARD_TYPE_TRANSLATIONS[$card["type"]];
+
+                    self::notifyAllPlayers("cardRevealed", clienttranslate("\${player_name} reveals a \${card_type} card"), array(
+                        "i18n" => array("card_type"),
+                        "card" => $card,
+                        "card_type" => $card_type,
+                        "player_id" => $player_id,
+                        "player_name" => $player_name
+                    ));
+                }
+            }
+
             $this->gamestate->nextState("gameEnd");
         } else {
             foreach (array_keys($players) as $player_id) {
