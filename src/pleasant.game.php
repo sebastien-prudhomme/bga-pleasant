@@ -330,6 +330,64 @@ class pleasant extends Table {
                 }
             }
 
+            foreach (array_keys($players) as $player_id) {
+                $cards = $this->CARDS;
+
+                foreach (array_keys($cards) as $key) {
+                    $type = $cards[$key]["type"];
+
+                    $card_count[$type] = 0;
+                }
+
+                $cards = $this->cards->getCardsInLocation("farm_${player_id}");
+
+                foreach (array_keys($cards) as $card_id) {
+                    $type = $cards[$card_id]["type"];
+
+                    $card_count[$type]++;
+                }
+
+                $score = 0;
+
+                $animal_number = $this->POINTS["paddock_capacity"];
+
+                while (($card_count["paddock"] > 0) && ($animal_number > 0)) {
+                    $animals = array("cow", "pig", "sheep", "chicken", "donkey");
+                    $animal_found = FALSE;
+
+                    foreach ($animals as $animal) {
+                        if ($card_count[$animal] >= $animal_number) {
+                            $animal_found = TRUE;
+
+                            $card_count["paddock"]--;
+                            $card_count[$animal] -= $animal_number;
+
+                            $score += $animal_number * $this->POINTS[$animal];
+
+                            break;
+                        }
+                    }
+
+                    if (!$animal_found) {
+                        $animal_number--;
+                    }
+                }
+
+                $score += $card_count["cereal"] * $this->POINTS["cereal"];
+                $score += $card_count["cereal"] * $card_count["tractor"] * $this->POINTS["tractor_bonus"];
+
+                $score += $card_count["vegetable"] * $this->POINTS["vegetable"];
+                $score += $card_count["vegetable"] * $card_count["tractor"] * $this->POINTS["tractor_bonus"];
+
+                $score += $card_count["fruit"] * $this->POINTS["fruit"];
+
+                $score += $card_count["tent"] * ($card_count["tent"] + $this->POINTS["tent"]);
+                $score -= $card_count["tent"] * $card_count["tractor"] * $this->POINTS["tractor_penalty"];
+
+                $sql = "UPDATE player SET player_score = ${score} WHERE player_id = ${player_id}";
+                self::DbQuery($sql);
+            }
+
             $this->gamestate->nextState("gameEnd");
         } else {
             foreach (array_keys($players) as $player_id) {

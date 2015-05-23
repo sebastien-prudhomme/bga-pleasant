@@ -47,4 +47,19 @@ $this->PLAYER_COLORS = array(
     "ffff00"
 );
 
+$this->POINTS = array(
+    "cereal" => 3,
+    "chicken" => 7,
+    "cow" => 10,
+    "donkey" => 6,
+    "fruit" => 4,
+    "paddock_capacity" => 2,
+    "pig" => 9,
+    "sheep" => 8,
+    "tent" => 3,
+    "tractor_bonus" => 3,
+    "tractor_penalty" => 2,
+    "vegetable" => 4
+);
+
 $this->ROUND_NUMBER = 3;
