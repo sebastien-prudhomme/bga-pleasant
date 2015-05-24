@@ -362,7 +362,11 @@ class pleasant extends Table {
                             $card_count["paddock"]--;
                             $card_count[$animal] -= $animal_number;
 
-                            $score += $animal_number * $this->POINTS[$animal];
+                            $animal_points = $animal_number * $this->POINTS[$animal];
+
+                            $uppercase_animal = ucfirst($animal);
+                            self::incStat($animal_points, "pointsScoredWith${uppercase_animal}Cards", $player_id);
+                            $score += $animal_points;
 
                             break;
                         }
@@ -373,16 +377,28 @@ class pleasant extends Table {
                     }
                 }
 
-                $score += $card_count["cereal"] * $this->POINTS["cereal"];
-                $score += $card_count["cereal"] * $card_count["tractor"] * $this->POINTS["tractor_bonus"];
+                $vegetable_points = $card_count["vegetable"] * $this->POINTS["vegetable"];
+                $vegetable_points += $card_count["vegetable"] * $card_count["tractor"] * $this->POINTS["tractor_bonus"];
 
-                $score += $card_count["vegetable"] * $this->POINTS["vegetable"];
-                $score += $card_count["vegetable"] * $card_count["tractor"] * $this->POINTS["tractor_bonus"];
+                self::incStat($vegetable_points, "pointsScoredWithVegetableCards", $player_id);
+                $score += $vegetable_points;
 
-                $score += $card_count["fruit"] * $this->POINTS["fruit"];
+                $fruit_points = $card_count["fruit"] * $this->POINTS["fruit"];
 
-                $score += $card_count["tent"] * ($card_count["tent"] + $this->POINTS["tent"]);
-                $score -= $card_count["tent"] * $card_count["tractor"] * $this->POINTS["tractor_penalty"];
+                self::incStat($fruit_points, "pointsScoredWithFruitCards", $player_id);
+                $score += $fruit_points;
+
+                $cereal_points = $card_count["cereal"] * $this->POINTS["cereal"];
+                $cereal_points += $card_count["cereal"] * $card_count["tractor"] * $this->POINTS["tractor_bonus"];
+
+                self::incStat($cereal_points, "pointsScoredWithCerealCards", $player_id);
+                $score += $cereal_points;
+
+                $tent_points = $card_count["tent"] * ($card_count["tent"] + $this->POINTS["tent"]);
+                $tent_points -= $card_count["tent"] * $card_count["tractor"] * $this->POINTS["tractor_penalty"];
+
+                self::incStat($tent_points, "pointsScoredWithTentCards", $player_id);
+                $score += $tent_points;
 
                 $sql = "UPDATE player SET player_score = ${score} WHERE player_id = ${player_id}";
                 self::DbQuery($sql);
