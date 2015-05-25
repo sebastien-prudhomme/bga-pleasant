@@ -17,7 +17,8 @@ class pleasant extends Table {
         parent::__construct();
 
         self::initGameStateLabels(array(
-            "round" => 10
+            "progression" => 10,
+            "round" => 11
         ));
 
         $this->cards = self::getNew("module.common.deck");
@@ -32,6 +33,7 @@ class pleasant extends Table {
         self::setupPlayers($players);
 
         self::setupCards();
+        self::setupProgression();
         self::setupRound();
 
         $this->gamestate->setAllPlayersMultiactive();
@@ -74,6 +76,10 @@ class pleasant extends Table {
         }
     }
 
+    private function setupProgression() {
+        self::setGameStateInitialValue("progression", 0);
+    }
+
     private function setupRound() {
         self::setGameStateInitialValue("round", 1);
     }
@@ -96,7 +102,11 @@ class pleasant extends Table {
     }
 
     public function getGameProgression() {
-        return 0;
+        $progression = self::getGameStateValue("progression");
+
+        $progression = (100 * $progression) / (2 * $this->ROUND_NUMBER);
+
+        return $progression;
     }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -254,6 +264,12 @@ class pleasant extends Table {
             self::giveExtraTime($player_id);
         }
 
+        self::incGameStateValue("progression", 1);
+
+        $this->gamestate->nextState("beforePlayCardFaceDown");
+    }
+
+    public function stBeforePlayCardFaceDown() {
         $this->gamestate->nextState("playCardFaceDown");
     }
 
@@ -404,7 +420,9 @@ class pleasant extends Table {
                 self::DbQuery($sql);
             }
 
-            $this->gamestate->nextState("gameEnd");
+            self::incGameStateValue("progression", 1);
+
+            $this->gamestate->nextState("beforeGameEnd");
         } else {
             foreach (array_keys($players) as $player_id) {
                 $card = $this->cards->pickCard("deck", $player_id);
@@ -420,8 +438,18 @@ class pleasant extends Table {
                 self::giveExtraTime($player_id);
             }
 
-            $this->gamestate->nextState("playCardFaceUp");
+            self::incGameStateValue("progression", 1);
+
+            $this->gamestate->nextState("beforePlayCardFaceUp");
         }
+    }
+
+    public function stBeforePlayCardFaceUp() {
+        $this->gamestate->nextState("playCardFaceUp");
+    }
+
+    public function stBeforeGameEnd() {
+        $this->gamestate->nextState("gameEnd");
     }
 
 //////////////////////////////////////////////////////////////////////////////

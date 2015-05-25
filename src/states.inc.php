@@ -32,23 +32,47 @@ $machinestates = array(
         "description" => "",
         "type" => "game",
         "action" => "stCardFaceUpPlayed",
-        "transitions" => array("playCardFaceDown" => 4)
+        "transitions" => array("beforePlayCardFaceDown" => 4)
     ),
     4 => array(
+        "name" => "beforePlayCardFaceDown",
+        "description" => "",
+        "type" => "game",
+        "action" => "stBeforePlayCardFaceDown",
+        "transitions" => array("playCardFaceDown" => 5),
+        "updateGameProgression" => TRUE
+    ),
+    5 => array(
         "name" => "playCardFaceDown",
         "description" => clienttranslate("Some players must play a card face down"),
         "descriptionmyturn" => clienttranslate("\${you} must must play a card face down "),
         "type" => "multipleactiveplayer",
         "possibleactions" => array("playCardFaceDown"),
-        "transitions" => array("cardFaceDownPlayed" => 5),
+        "transitions" => array("cardFaceDownPlayed" => 6),
         "args" => "argPlayCard"
     ),
-    5 => array(
+    6 => array(
         "name" => "cardFaceDownPlayed",
         "description" => "",
         "type" => "game",
         "action" => "stCardFaceDownPlayed",
-        "transitions" => array("playCardFaceUp" => 2, "gameEnd" => 99)
+        "transitions" => array("beforePlayCardFaceUp" => 7, "beforeGameEnd" => 98)
+    ),
+    7 => array(
+        "name" => "beforePlayCardFaceUp",
+        "description" => "",
+        "type" => "game",
+        "action" => "stBeforePlayCardFaceUp",
+        "transitions" => array("playCardFaceUp" => 2),
+        "updateGameProgression" => TRUE
+    ),
+    98 => array(
+        "name" => "beforeGameEnd",
+        "description" => "",
+        "type" => "game",
+        "action" => "stBeforeGameEnd",
+        "transitions" => array("gameEnd" => 99),
+        "updateGameProgression" => TRUE
     ),
     99 => array(
         "name" => "gameEnd",
