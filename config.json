@@ -1,0 +1,12 @@
+{
+  "boardgamearena" : {
+    "game_box_size": "280",
+    "game_icon_size": "50",
+    "sftp_host": "1.studio.boardgamearena.com",
+    "sftp_port": "22"
+  },
+  "pleasant" : {
+    "card_width": "126",
+    "card_height": "177"
+  }
+}
