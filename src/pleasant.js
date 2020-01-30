@@ -64,7 +64,10 @@ define([
             for (var card_id in gamedatas.hand) {
                 var card = gamedatas.hand[card_id];
 
-                this.constructCard(card, player_hand_node, top, left);
+                var card_node = this.constructCard(card, player_hand_node, top, left);
+
+                var tooltip = this.getTooltip(card.type);
+                this.addTooltipHtml(card_node, tooltip);
 
                 left += this.CARD_WIDTH + this.GUTTER;
             }
@@ -80,7 +83,10 @@ define([
                 for (var card_id in gamedatas.farms[player_id]) {
                     var card = gamedatas.farms[player_id][card_id];
 
-                    this.constructCard(card, player_farm_node, top, left);
+                    var card_node = this.constructCard(card, player_farm_node, top, left);
+
+                    var tooltip = this.getTooltip(card.type);
+                    this.addTooltipHtml(card_node, tooltip);
 
                     left += this.CARD_WIDTH + this.GUTTER;
                 }
@@ -113,7 +119,7 @@ define([
 
         addTemporaryTooltip: function(node, message) {
             domStyle.set(node, "cursor", "pointer");
-            this.addTooltip(node, "", message);
+            this.addTooltipHtml(node, message);
 
             this.temporary_tooltips.push(node);
         },
@@ -196,6 +202,50 @@ define([
             return "pleasant_player_hand_cards";
         },
 
+        getTooltip: function(type) {
+            var title;
+            var description;
+
+            switch (type) {
+                case "chicken":
+                    title = _("Chicken");
+                    description = _("Score 7 points if accommodated in a paddock");
+                    break;
+
+                case "cow":
+                    title = _("Cow");
+                    description = _("Score 10 points if accommodated in a paddock");
+                    break;
+
+                case "donkey":
+                    title = _("Donkey");
+                    description = _("Score 6 points if accommodated in a paddock");
+                    break;
+
+                case "fruit":
+                    title = _("Fruit");
+                    description = _("Score 4 points");
+                    break;
+
+                case "paddock":
+                    title = _("Paddock");
+                    description = _("Can accommodate 1 or 2 animals of the same type");
+                    break;
+
+                case "vegetable":
+                    title = _("Vegetable");
+                    description = _("Score 4 points");
+                    break;
+            }
+
+            var tooltip = "<div class=\"pleasant_help pleasant_help_info\"></div>";
+            tooltip += "<div class=\"pleasant_help\"><b>";
+            tooltip += title + "</b><br/><br/>" + description;
+            tooltip += "</div>";
+
+            return tooltip;
+        },
+
         removeTemporaryConnections: function() {
             while (this.temporary_connections.length > 0) {
                 var handle = this.temporary_connections.pop();
@@ -221,7 +271,14 @@ define([
                     var card_node = this.getCardNode(card.id);
 
                     this.addTemporaryConnection(card_node, "onclick", "onPlayCardFaceUp", card.id);
-                    this.addTemporaryTooltip(card_node, _("Play this card face up"));
+
+                    var tooltip = "<div>" + this.getTooltip(card.type) + "</div>";
+                    tooltip += "<hr/><br><div class=\"pleasant_help pleasant_help_click\"></div>";
+                    tooltip += "<div class=\"pleasant_help\">";
+                    tooltip += _("Play this card face up");
+                    tooltip += "</div>";
+
+                    this.addTemporaryTooltip(card_node, tooltip);
                 }
             }
         },
